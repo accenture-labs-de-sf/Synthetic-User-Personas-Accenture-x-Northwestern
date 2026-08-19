@@ -1,6 +1,6 @@
 # Behaviorally-Grounded Synthetic User Personas
 
-A project to test whether grounding synthetic user personas in real behavioral data makes them more realistic for early product-testing interviews, and to build the pipeline and evaluation that proves it.
+A project to test whether grounding synthetic user personas in richer, multimodal behavioral data makes them more realistic for early product-testing interviews, and to build the pipeline and evaluation that proves it.
 
 ## The one-line thesis
 

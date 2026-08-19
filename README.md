@@ -2,17 +2,18 @@
 
 Behaviorally-grounded synthetic user personas for early product-testing interviews.
 
-Synthetic personas today are written from a text description and a list of stated
-preferences, so they only ever "know" what is on the page. This project grounds a
-persona in the behavioral context around what a real person says, meaning the affect
-and emotion that ride alongside their words, and tests whether that makes the persona
-more realistic and more useful for interviewing before real users are recruited.
+Text is real behavioral data, but it has limits: a written description and a list of
+stated preferences only capture what a person puts into words. This project grounds a
+persona in richer, multimodal behavioral data, the affect and emotion that ride
+alongside what a real person says, and tests whether that added grounding makes the
+persona more realistic and more useful for interviewing before real users are
+recruited.
 
-The grounding signal comes from affect and emotion labels in public datasets, used as
-conditioning at generation time. This is a data-science study. The team works with
-real behavioral data, conditions a persona on it, generates interview responses, and
-checks whether the grounding helped. See [`docs/project-plan.md`](docs/project-plan.md)
-for the full plan.
+The grounding signal comes from affect and emotion labels in public multimodal
+datasets, used as conditioning at generation time. This is a data-science study. The
+team works with real behavioral data, conditions a persona on it, generates interview
+responses, and checks whether the grounding helped. See
+[`docs/project-plan.md`](docs/project-plan.md) for the full plan.
 
 ## Status
 
