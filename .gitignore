@@ -1,0 +1,23 @@
+# Data (downloaded locally, not redistributed)
+data/*
+!data/.gitkeep
+
+# Generated outputs
+results/*
+!results/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Env / secrets
+.env
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
