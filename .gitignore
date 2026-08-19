@@ -17,6 +17,9 @@ env/
 # Env / secrets
 .env
 
+# Internal working notes (not published)
+AI-STYLE-GUARDRAILS.md
+
 # OS / editor
 .DS_Store
 .vscode/
