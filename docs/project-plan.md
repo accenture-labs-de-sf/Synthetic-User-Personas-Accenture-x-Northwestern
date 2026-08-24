@@ -14,7 +14,7 @@ This is a focused data-science study. The team works with real behavioral distri
 
 ## What the project investigates
 
-The experiment is always the same A/B comparison: a text-only persona versus a behaviorally-grounded persona, same archetype, same interview questions. Three questions:
+The experiment is always the same paired comparison: a text-only persona versus a behaviorally-grounded persona, same archetype, same interview questions. Three questions:
 
 1. **Does behavioral grounding beat text-only?** Are grounded persona responses judged more realistic and human-aligned than text-only responses on the same questions?
 2. **Is the gain substance or style?** Does grounding produce richer, more specific, more nuanced answers, or just a different tone?
@@ -28,9 +28,9 @@ The experiment is always the same A/B comparison: a text-only persona versus a b
 
 **Static conditioning of a dynamic journey.** The behavioral journey is encoded once and supplied to the persona at the start of the interview. The conditioning is **static**, authored a single time, but what it encodes is a **dynamic** arc: a trajectory and set of tendencies the persona carries across the whole interview. The movement is captured inside the conditioning artifact itself, so one up-front encoding produces realistic variation across the interview.
 
-**Defining the journey (open design item).** Exactly how a journey is inferred from the label sequence is an item to settle early. The likely approach is a **schema** that organizes the relevant context for one speaker (their ordered affect labels, the matching transcript snippets, and any coarse identity), plus a **prompt and a trusted reasoning loop** that asks an LLM to read that context and infer the journey in the schema's shape. That inferred journey is the artifact the three application levels below consume. The plans differ in how the inference is run: **Plan A** can lean on the Claude Code harness as a trusted product utility to do the inference, while **Plan B** hand-crafts the inference step or borrows from trusted repositories so it runs as a reproducible pipeline stage.
+**Defining the journey (open design item).** Exactly how a journey is inferred from the label sequence is an item to settle early. The likely approach is a **schema** that organizes the relevant context for one speaker (their ordered affect labels, the matching transcript snippets, and any coarse identity), plus a **prompt and a trusted reasoning loop** that asks an LLM to read that context and infer the journey in the schema's shape. The plans differ in how the inference is run: **Plan A** can lean on the Claude Code harness as a trusted product utility to do the inference, while **Plan B** hand-crafts the inference step or borrows from trusted repositories so it runs as a reproducible pipeline stage.
 
-**The two arms.** The **text-only arm (A)** is the archetype identity alone, with no behavioral journey. The **grounded arm (B)** is the same archetype plus the journey, which shapes how the persona answers and how it moves across the interview, not what facts it holds. That single difference is what the A/B measures.
+**The two arms.** The **text-only arm** is the archetype identity alone, with no behavioral journey. The **grounded arm** is the same archetype plus the journey, which shapes how the persona answers and how it moves across the interview, not what facts it holds. That single difference is what the comparison measures.
 
 **How the journey is applied.** The mechanism is context conditioning, not fine-tuning: we steer the generator through its prompt and context, we do not retrain it. Three levels of rigor match the two build paths:
 
@@ -59,7 +59,7 @@ A product team is about to build an AI meeting-assistant feature inside their wo
 
 ## The two build paths
 
-Both paths run the same experiment and answer the same questions. They differ in how much the team builds and how rigorous the generation and evaluation architecture is. Teams can pick one or mix them.
+Both paths run the same experiment. They differ in how much the team builds and how rigorous the generation and evaluation architecture is. Teams can pick one or mix them.
 
 ### Plan A: analysis-first
 
@@ -127,9 +127,9 @@ Reported simply, the outcome is the share of blind head-to-heads the grounded pe
 ## Phased plan
 
 1. **Scope and data.** Choose the build path. Load CMU-MOSEI transcripts and affect labels and extract behavioral journeys from the real label sequences.
-2. **Two personas.** Build the text-only prompt and the grounded prompt, and generate a first A/B batch.
+2. **Two personas.** Build the text-only prompt and the grounded prompt, and generate a first paired batch.
 3. **Evaluation harness.** Humans write the rubric, wire the LLM judge, and run the calibration loop. Plan B adds the grounded and adversarial metrics.
-4. **Run the experiment.** Full A/B batch across archetypes and questions, with descriptive statistics.
+4. **Run the experiment.** Full paired batch across archetypes and questions, with descriptive statistics.
 5. **Harden and deliver.** Plan B packages the pipeline for reproducibility. Produce the final deliverables.
 
 ## Deliverables
