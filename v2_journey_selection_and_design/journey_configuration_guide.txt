@@ -1,0 +1,106 @@
+================================================================================
+JOURNEY SELECTION & JOURNEY DESIGN — CONFIGURATION GUIDE & EXPERIMENT SUMMARY
+================================================================================
+
+PART 1: THE 6 TUNABLE LEVERS (WHAT EACH TOGGLE MEANS)
+--------------------------------------------------------------------------------
+
+1. SELECTION_METHOD (Stage 1: How we pick the 4 emotional journeys from CMU-MOSEI)
+This decides which 4 videos get picked from the 1,279 cleaned recordings to serve as your emotional cycles (C1 to C4):
+
+- "provisional_4" (What we did in the first POC):
+  Folds your original 6 clusters into 4 groups and picks the video closest to the average line of each group. Because averages smooth everything out, these videos have small sentiment changes (0.67 to 1.00) and weak emotions.
+- "cluster_k4":
+  Re-runs K-Means clustering directly with K = 4 using both sentiment and the 6 discrete emotions (happy, sad, anger, surprise, disgust, fear), then picks a clear representative video from each of the 4 clusters.
+- "cluster_high_var":
+  Still uses the 4 cluster shapes (Warms up, Positive dip, Middle peak, Cools off), but instead of picking the flattest "average" video in each cluster, it picks a video that has a big emotional swing and at least 3 different emotions active.
+- "random_high_var":
+  Ignores the clusters and randomly samples 4 real videos from the dataset that have huge emotional swings (sentiment range >= 2.0) and multiple strong emotions (for example, a speaker who goes from surprised to happy to angry across the video).
+
+2. GRANULARITY (Stage 2: Which emotion signals we give the LLM)
+This decides whether the LLM only sees a single -3 to +3 positivity number or sees the actual specific emotions:
+
+- "sentiment_only":
+  Only gives the overall sentiment score (-3 very negative to +3 very positive). The LLM knows how positive or negative to be, but not which emotion (e.g., whether -1.0 means sad, fearful, disgusted, or angry).
+- "emotion_breakdown":
+  Gives the overall sentiment plus the 6 specific emotions (happy, sad, anger, surprise, disgust, fear on a 0 to 3 scale). When anger or disgust are high, it also instructs the persona to use a pointed, dry, or slightly sarcastic edge rather than polite corporate language.
+
+3. REPRESENTATION (Stage 2: Words vs. Numbers)
+This decides how that emotional state is written inside the prompt:
+
+- "verbal":
+  Describes the mood purely in plain English words (for example: "Express a moderately critical and skeptical tone. Grow more guarded than in your last answer. Let noticeable anger and subtle disgust color how you phrase your reaction.").
+- "quant":
+  Gives the LLM the exact numerical scores along with the scale definition (for example: "Current sentiment = -1.28 on a -3 to +3 scale; Discrete emotions: [happy=0.00, sad=0.43, anger=1.00, ...]") plus the behavioral translation.
+
+4. STOCHASTICITY (Stage 2: Exact Number vs. Range)
+This implements Adolfo's suggestion so the persona doesn't sound rigidly locked to a single number:
+
+- "fixed":
+  Gives a single deterministic number for that turn (for example: sentiment = +1.00, anger = 0.65).
+- "range_or_alpha":
+  Uses the ALPHA spread parameter to give a target range/band for that turn (for example: Target sentiment range = [+0.68, +1.32], anger in [0.40, 0.90]), allowing natural variation within that band.
+
+5. PLACEMENT (Stage 2: Whole Journey Upfront vs. One Step per Question)
+This controls where the emotional journey lives in the conversation:
+
+- "system_whole_journey":
+  Puts the Persona and the entire 5-step emotional cycle (Turn 1 through Turn 5) inside the system prompt at the very beginning of the interview. Then, each turn only sends the clean question (Question 1, Question 2, etc.).
+- "per_question_stage":
+  Puts only the Persona in the system prompt. Then, as each question is asked, it injects only that specific question's emotional stage (Stage 1 with Question 1, Stage 2 with Question 2, etc.) so the persona reacts step-by-step without seeing future stages early.
+
+6. PROMPT_MODE (How the LLM generates each answer)
+In both modes, conversation memory is always on (Question 2 sees Question 1 + Answer 1, Question 3 sees Q1..A2, etc.). This toggle controls whether each turn uses 1 API call or 2 chained API calls:
+
+- "single_call":
+  Makes 1 LLM call per question. The model reads the persona, the conversation history, the emotion cue, and the question all at once and outputs the answer.
+- "two_step_chain" (Adolfo & Andy Fano's fix for "context squeezing"):
+  Makes 2 LLM calls per question:
+  * Step A (Substance Draft): The persona answers the product question using its identity and conversation memory without being distracted by the emotion prompt.
+  * Step B (Emotional Modulation): A second call rewrites Step A's draft so the exact emotional cue (e.g., anger/sarcasm or warming up) comes through strongly in the tone without losing any of the concrete product feedback from Step A.
+
+
+================================================================================
+PART 2: THE 5 CONFIGURATIONS EXECUTED IN THE NOTEBOOK (D0 TO D4)
+================================================================================
+
+How does the notebook know which exact mood cycle to follow?
+The model never picks a mood cycle on its own. Each configuration in `EXPERIMENT_CONFIGS` explicitly specifies:
+  1. `selection_method`: Which of the 4 selection methods to pull from (`"random_high_var"` in this run).
+  2. `condition`: Which of the 4 mood cycles inside that method to use (`"C0"`, `"C1"`, `"C2"`, `"C3"`, or `"C4"`).
+
+Here are the 5 configurations that were run against the 5 Netflix Subscription Manager screens for persona Filomena Nguyen (30, Operations Manager, Parsons, WV):
+
+1. D0_baseline_memory ("D0 · No mood path / Baseline")
+   - Selection Method : None (Condition = C0)
+   - Prompt Setup     : Single call per turn, conversation memory ON, no emotional journey.
+   - What it does     : Baseline control. Produces long (289 to 489 words), overly structured, bulleted "AI consultant" checklists.
+
+2. D1_whole_journey_system_verbal_emotions ("D1 · Whole mood story at start, in words")
+   - Selection Method : "random_high_var" -> Condition C4 (video `2-4autDbHVQ`, "High-var sample 4: Warms up")
+   - Exact Mood Cycle : +0.58 -> +2.07 -> +1.02 -> +1.00 -> +2.27 (Dominated by Happy: 1.67 to 2.67 across all 5 turns)
+   - Prompt Setup     : `granularity="emotion_breakdown"`, `representation="verbal"`, `stochasticity="fixed"`, `placement="system_whole_journey"`, `prompt_mode="single_call"`.
+   - What it does     : Puts the entire 5-step "Warms up" story in plain English inside the system prompt at the start of the interview, and sends clean questions on each turn.
+
+3. D2_per_turn_quant_fixed_emotions ("D2 · One mood score per question, numbers")
+   - Selection Method : "random_high_var" -> Condition C4 (video `2-4autDbHVQ`, "High-var sample 4: Warms up")
+   - Exact Mood Cycle : Same C4 path (+0.58 -> +2.07 -> +1.02 -> +1.00 -> +2.27, Happy: 1.67 to 2.67)
+   - Prompt Setup     : `granularity="emotion_breakdown"`, `representation="quant"`, `stochasticity="fixed"`, `placement="per_question_stage"`, `prompt_mode="single_call"`.
+   - What it does     : Tests the exact same C4 "Warms up" video as D1, but keeps the system prompt clean (persona only) and feeds one exact mood number + 6-emotion vector at each individual question turn.
+
+4. D3_per_turn_quant_range_two_step_chain ("D3 · Two-step rewrite on C4 Warms up clip")
+   - Selection Method : "random_high_var" -> Condition C4 (video `2-4autDbHVQ`, "High-var sample 4: Warms up")
+   - Exact Mood Cycle : Same C4 path (+0.58 -> +2.07 -> +1.02 -> +1.00 -> +2.27, Happy: 1.67 to 2.67)
+   - Prompt Setup     : `granularity="emotion_breakdown"`, `representation="quant"`, `stochasticity="range_or_alpha"`, `placement="per_question_stage"`, `prompt_mode="two_step_chain"`.
+   - What it does     : Tests the exact same C4 "Warms up" video as D1 and D2, but uses a target score range (`[low, high]`) and the 2-step rewrite chain (Step A drafts the substantive product answer -> Step B modulates the emotional tone).
+
+5. D4_random_high_var_two_step_chain ("D4 · Two-step rewrite on C1 Cools off / Angry clip")
+   - Selection Method : "random_high_var" -> Condition C1 (video `8lfS97s2AKc`, "High-var sample 1: Cools off")
+   - Exact Mood Cycle :
+       * Turn 1: Sentiment -1.27 (range [-1.56, -0.98]) | Surprise=0.67, Disgust=0.33, Fear=0.33
+       * Turn 2: Sentiment +1.95 (range [+1.56, +2.33]) | Happy=1.70
+       * Turn 3: Sentiment -0.17 (range [-0.54, +0.21]) | Happy=1.44, Anger=0.45, Surprise=0.11
+       * Turn 4: Sentiment -1.87 (range [-2.30, -1.45]) | Anger=1.57, Disgust=0.76, Surprise=0.19
+       * Turn 5: Sentiment -0.99 (range [-1.52, -0.46]) | Anger=1.00, Disgust=1.00, Happy=0.33
+   - Prompt Setup     : Identical to D3 (`emotion_breakdown`, `quant`, `range_or_alpha`, `per_question_stage`, `two_step_chain`).
+   - What it does     : Keeps the exact same 2-step prompt architecture as D3, and only swaps the video from C4 (the happy, warming-up speaker `2-4autDbHVQ`) to C1 (the roller-coaster, high-anger/disgust speaker `8lfS97s2AKc`). This isolates the effect of a sharp negative/angry emotional cycle: Filomena drops her polite tone on Turn 1, warms up on Turn 2, grows frustrated with the "black hole" pending screen on Turn 4, and reverses her final Turn 5 product verdict ("I wouldn't trust this feature to handle anything important yet").
