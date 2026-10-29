@@ -1,5 +1,22 @@
 """Synthetic User Personas package."""
 
+from .conversation_loop import (
+    ArmName,
+    FORMAT_BLOCK,
+    GroundingMetrics,
+    PersonaVariant,
+    Session,
+    build_card,
+    build_cards_for_persona,
+    build_messages,
+    coarse_rules,
+    compute_grounding_metrics,
+    estimate_tokens,
+    fine_rules,
+    first_sentence,
+    parse_structured_output,
+    update_session_state,
+)
 from .journeys import (
     ALL_AFFECT_COLUMNS,
     EMOTION_COLUMNS,
@@ -16,14 +33,29 @@ from .journeys import (
 
 __all__ = [
     "ALL_AFFECT_COLUMNS",
+    "ArmName",
     "EMOTION_COLUMNS",
+    "FORMAT_BLOCK",
+    "GroundingMetrics",
     "JourneyStage",
+    "PersonaVariant",
     "SelectedJourney",
+    "Session",
+    "build_card",
+    "build_cards_for_persona",
     "build_interview_prompts",
+    "build_messages",
     "build_two_step_modulation_prompt",
+    "coarse_rules",
+    "compute_grounding_metrics",
+    "estimate_tokens",
+    "fine_rules",
+    "first_sentence",
     "format_stage_cue",
     "format_whole_journey_block",
     "load_clean_mosei",
+    "parse_structured_output",
     "resample_series",
     "select_journeys",
+    "update_session_state",
 ]
